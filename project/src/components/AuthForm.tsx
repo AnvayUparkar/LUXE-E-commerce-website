@@ -1,34 +1,24 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, X, CheckCircle, AlertCircle } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5000/api';
+import { marketApi } from '../api/market';
 
 interface FormData {
-  name: string;
+  username: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
 interface FormErrors {
-  name?: string;
+  username?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
   general?: string;
 }
 
-interface ApiResponse {
-  message?: string;
-  error?: string;
-  details?: { [key: string]: string };
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-    createdAt: string;
-  };
-}
 
 const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState<boolean>(true);
@@ -36,9 +26,10 @@ const AuthForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
-    name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -52,8 +43,8 @@ const AuthForm: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
-    if (!isLogin && (!formData.name || formData.name.trim().length < 2)) {
-      newErrors.name = 'Name must be at least 2 characters long';
+    if (!isLogin && (!formData.username || formData.username.trim().length < 2)) {
+      newErrors.username = 'Username must be at least 2 characters long';
     }
     
     if (!formData.email) {
@@ -96,7 +87,13 @@ const AuthForm: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    
+
+    // For login, require username or email
+    if (isLogin && !formData.username && !formData.email) {
+      setErrors({ general: 'Please enter your username or email.' });
+      return;
+    }
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -104,50 +101,26 @@ const AuthForm: React.FC = () => {
     setSuccessMessage('');
 
     try {
-      const endpoint = isLogin ? `${API_BASE}/login` : `${API_BASE}/register`;
-      const requestBody = isLogin 
-        ? { email: formData.email, password: formData.password }
-        : { name: formData.name, email: formData.email, password: formData.password };
-
-      console.log('Sending request to:', endpoint);
-      console.log('Request body:', requestBody);
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('Response status:', response.status);
-      
-      const data: ApiResponse = await response.json();
-      console.log('Response data:', data);
-
-      if (!response.ok) {
-        // Handle validation errors from backend
-        if (data.details) {
-          setErrors({ ...data.details, general: data.error });
-        } else {
-          setErrors({ general: data.error || 'Authentication failed' });
-        }
+      if (isLogin) {
+        // Prefer username, fallback to email
+        const identifier = formData.username || formData.email;
+        const response = await marketApi.login(identifier, formData.password);
+        setSuccessMessage(`Welcome back, ${response.user.username}!`);
+        // Redirect to main page after login
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
       } else {
-        // Success
-        setSuccessMessage(data.message || (isLogin ? 'Login successful!' : 'Account created successfully!'));
-        
-        // Clear form on successful registration
-        if (!isLogin) {
-          setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-        }
-        
-        // You can add redirect logic here or emit an event to parent component
-        console.log('User data:', data.user);
+        await marketApi.register(formData.username, formData.email, formData.password);
+        setSuccessMessage('Account created successfully! Please login.');
+        // Clear form and switch to login view
+        setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+        setIsLogin(true);
       }
-    } catch (err) {
-      console.error('Network error:', err);
-      setErrors({ general: 'Network error. Please check your connection and try again.' });
+    } catch (error) {
+      setErrors({ 
+        general: error instanceof Error ? error.message : 'An unexpected error occurred' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +128,7 @@ const AuthForm: React.FC = () => {
 
   const toggleMode = (): void => {
     setIsLogin(!isLogin);
-    setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+    setFormData({ username: '', email: '', password: '', confirmPassword: '' });
     setErrors({});
     setSuccessMessage('');
     setShowPassword(false);
@@ -179,28 +152,28 @@ const AuthForm: React.FC = () => {
             {!isLogin && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Full Name
+                  Username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <User className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    name="name"
+                    name="username"
                     type="text"
-                    value={formData.name}
+                    value={formData.username}
                     onChange={handleInputChange}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-blue-500'
+                      errors.username ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-blue-500'
                     }`}
-                    placeholder="Enter your full name"
+                    placeholder="Enter your username"
                     disabled={isLoading}
                   />
                 </div>
-                {errors.name && (
+                {errors.username && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
                     <X className="h-4 w-4" />
-                    {errors.name}
+                    {errors.username}
                   </p>
                 )}
               </div>

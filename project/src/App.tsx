@@ -8,7 +8,9 @@ import ProductShowcase from './components/ProductShowcase';
 import StatsSection from './components/StatsSection';
 import NewsletterSection from './components/NewsletterSection';
 import CallToAction from './components/CallToAction';
-import Footer from './components/Footer';
+import { Routes, Route } from 'react-router-dom';
+import ProductListingPage from './components/ProductListingPage';
+import ProductDetailPage from './components/ProductDetailPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,14 +30,23 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <Navigation />
-      <HeroSection />
-      <Features />
-      <ProductShowcase />
-      <StatsSection />
-      <NewsletterSection />
-      <CallToAction />
-      <Footer />
+      <Routes>
+        <Route path="/" element={
+          <>
+            <Navigation />
+            <main className="flex-1">
+              <HeroSection />
+              <Features />
+              <ProductShowcase />
+              <StatsSection />
+              <NewsletterSection />
+              <CallToAction />
+            </main>
+          </>
+        } />
+        <Route path="/products" element={<ProductListingPage />} />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
+      </Routes>
     </div>
   );
 }

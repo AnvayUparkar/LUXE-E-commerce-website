@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ShoppingBag, Search, User, Menu, X } from 'lucide-react';
 import { gsap } from 'gsap';
-import AuthForm from './AuthForm'; // Adjust path based on your file structure
+import { useNavigate } from 'react-router-dom';
+
+import AuthForm from './AuthForm';
 
 export default function Navigation() {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -32,9 +35,11 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="nav-item flex-shrink-0">
+          <div 
+            className="nav-item flex-shrink-0 cursor-pointer" 
+            onClick={() => navigate('/')}>
             <h1 className={`text-2xl font-bold transition-colors duration-300 ${
-              isScrolled ? 'text-gray-900' : 'text-white'
+              isScrolled ? 'text-gray-900 hover:text-orange-500' : 'text-white hover:text-orange-300'
             }`}>
               LUXE
             </h1>
