@@ -11,6 +11,7 @@ import CallToAction from './components/CallToAction';
 import { Routes, Route } from 'react-router-dom';
 import ProductListingPage from './components/ProductListingPage';
 import ProductDetailPage from './components/ProductDetailPage';
+import { UserProvider } from './UserContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,25 +30,27 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen">
-      <Routes>
-        <Route path="/" element={
-          <>
-            <Navigation />
-            <main className="flex-1">
-              <HeroSection />
-              <Features />
-              <ProductShowcase />
-              <StatsSection />
-              <NewsletterSection />
-              <CallToAction />
-            </main>
-          </>
-        } />
-        <Route path="/products" element={<ProductListingPage />} />
-        <Route path="/product/:id" element={<ProductDetailPage />} />
-      </Routes>
-    </div>
+    <UserProvider>
+      <div className="min-h-screen">
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Navigation />
+              <main className="flex-1">
+                <HeroSection />
+                <Features />
+                <ProductShowcase />
+                <StatsSection />
+                <NewsletterSection />
+                <CallToAction />
+              </main>
+            </>
+          } />
+          <Route path="/products" element={<ProductListingPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+        </Routes>
+      </div>
+    </UserProvider>
   );
 }
 

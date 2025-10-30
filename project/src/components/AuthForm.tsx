@@ -1,5 +1,6 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../UserContext';
 import { Eye, EyeOff, Mail, Lock, User, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { marketApi } from '../api/market';
@@ -20,13 +21,18 @@ interface FormErrors {
 }
 
 
-const AuthForm: React.FC = () => {
+interface AuthFormProps {
+  closeModal?: () => void;
+}
+
+const AuthForm: React.FC<AuthFormProps> = ({ closeModal }) => {
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
 
   const [formData, setFormData] = useState<FormData>({
     username: '',
@@ -106,6 +112,8 @@ const AuthForm: React.FC = () => {
         const identifier = formData.username || formData.email;
         const response = await marketApi.login(identifier, formData.password);
         setSuccessMessage(`Welcome back, ${response.user.username}!`);
+        setUser(response.user);
+        if (closeModal) closeModal();
         // Redirect to main page after login
         setTimeout(() => {
           navigate('/');
