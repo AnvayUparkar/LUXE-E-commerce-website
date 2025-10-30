@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
 import { gsap } from 'gsap';
+import { useNavigate } from 'react-router-dom';
+
+// ...existing code...
 import Hero3D from './Hero3D';
 
 export default function HeroSection() {
@@ -21,12 +24,14 @@ export default function HeroSection() {
       { y: 0, opacity: 1, duration: 1, ease: "power2.out" },
       "-=0.8"
     )
-    .fromTo(buttonRef.current?.children,
+    .fromTo(buttonRef.current ? Array.from(buttonRef.current.children) : [],
       { y: 30, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.8, stagger: 0.2, ease: "back.out(1.7)" },
       "-=0.5"
     );
   }, []);
+
+  const navigate = useNavigate();
 
   return (
     <div ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -59,7 +64,13 @@ export default function HeroSection() {
         </p>
 
         <div ref={buttonRef} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button className="group bg-gradient-to-r from-orange-500 to-pink-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center gap-2">
+          <button 
+            onClick={() => {
+              navigate('/products');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="group bg-gradient-to-r from-orange-500 to-pink-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center gap-2"
+          >
             Explore Collection
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
           </button>

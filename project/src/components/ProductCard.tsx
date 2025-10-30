@@ -1,12 +1,14 @@
 import React, { useRef, useEffect } from 'react';
 import { Heart, ShoppingCart, Eye } from 'lucide-react';
 import { gsap } from 'gsap';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
   id: number;
-  name: string;
-  price: string;
-  originalPrice?: string;
+  title?: string; // for compatibility with mock data
+  name?: string;  // for compatibility with other data
+  price: number | string;
+  originalPrice?: number | string;
   image: string;
   isNew?: boolean;
   isSale?: boolean;
@@ -14,6 +16,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ 
   id, 
+  title, 
   name, 
   price, 
   originalPrice, 
@@ -21,6 +24,7 @@ export default function ProductCard({
   isNew = false, 
   isSale = false 
 }: ProductCardProps) {
+  const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -82,16 +86,21 @@ export default function ProductCard({
         <img
           ref={imageRef}
           src={image}
-          alt={name}
+          alt={title || name || ''}
           className="w-full h-full object-cover transition-transform duration-500"
         />
-        
         {/* Overlay with actions */}
         <div 
           ref={overlayRef}
           className="absolute inset-0 bg-black/40 flex items-center justify-center gap-4 opacity-0 transition-opacity duration-300"
         >
-          <button className="p-3 bg-white rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110">
+          <button
+            className="p-3 bg-white rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110"
+            onClick={() => {
+              navigate(`/product/${id}`);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
             <Eye size={20} className="text-gray-800" />
           </button>
           <button className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-all duration-300 hover:scale-110">
@@ -102,11 +111,11 @@ export default function ProductCard({
 
       {/* Product info */}
       <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{name}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{title || name}</h3>
         <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-900">{price}</span>
+          <span className="text-xl font-bold text-gray-900">${price}</span>
           {originalPrice && (
-            <span className="text-sm text-gray-500 line-through">{originalPrice}</span>
+            <span className="text-sm text-gray-500 line-through">${originalPrice}</span>
           )}
         </div>
       </div>
